@@ -463,7 +463,7 @@ theorem differentIdeal_ne_bot [Module.Finite A B]
   let L := FractionRing B
   have : IsLocalization (Algebra.algebraMapSubmonoid B A⁰) L :=
     IsIntegralClosure.isLocalization _ K _ _
-  have : FiniteDimensional K L := Module.Finite_of_isLocalization A B _ _ A⁰
+  have : FiniteDimensional K L := Module.Finite.of_isLocalization A B _ _ A⁰
   rw [ne_eq, ← FractionalIdeal.coeIdeal_inj (K := L), coeIdeal_differentIdeal (K := K)]
   simp
 

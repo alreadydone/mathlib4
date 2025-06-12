@@ -60,7 +60,7 @@ variable {R S : Type u} [CommRing R] [CommRing S] (M : Submonoid R) (f : R →+*
 variable (R' S' : Type u) [CommRing R'] [CommRing S']
 variable [Algebra R R'] [Algebra S S']
 
-lemma Module.Finite_of_isLocalization (R S Rₚ Sₚ) [CommSemiring R] [CommSemiring S]
+lemma Module.Finite.of_isLocalization (R S Rₚ Sₚ) [CommSemiring R] [CommSemiring S]
     [CommSemiring Rₚ] [CommSemiring Sₚ] [Algebra R S] [Algebra R Rₚ] [Algebra R Sₚ] [Algebra S Sₚ]
     [Algebra Rₚ Sₚ] [IsScalarTower R S Sₚ] [IsScalarTower R Rₚ Sₚ] (M : Submonoid R)
     [IsLocalization M Rₚ] [IsLocalization (Algebra.algebraMapSubmonoid S M) Sₚ]
@@ -96,6 +96,9 @@ lemma Module.Finite_of_isLocalization (R S Rₚ Sₚ) [CommSemiring R] [CommSemi
     (IsLocalization.mk' Rₚ (1 : R) ⟨r, hr⟩) (H hy) using 1
   rw [Algebra.smul_def, this, IsLocalization.map_mk', map_one]
 
+@[deprecated (since := "2025-06-12")] alias Module.Finite_of_isLocalization :=
+  Module.Finite.of_isLocalization
+
 /-- If `S` is a finite `R`-algebra, then `S' = M⁻¹S` is a finite `R' = M⁻¹R`-algebra. -/
 theorem RingHom.finite_localizationPreserves : RingHom.LocalizationPreserves @RingHom.Finite := by
   introv R hf
@@ -109,7 +112,7 @@ theorem RingHom.finite_localizationPreserves : RingHom.LocalizationPreserves @Ri
   have : IsLocalization (Algebra.algebraMapSubmonoid S M) S' := by
     rwa [Algebra.algebraMapSubmonoid, RingHom.algebraMap_toAlgebra]
   have : Module.Finite R S := hf
-  apply Module.Finite_of_isLocalization R S R' S' M
+  apply Module.Finite.of_isLocalization R S R' S' M
 
 theorem RingHom.localization_away_map_finite (r : R) [IsLocalization.Away r R']
     [IsLocalization.Away (f r) S'] (hf : f.Finite) : (IsLocalization.Away.map R' S' f r).Finite :=

@@ -54,7 +54,7 @@ instance [Module.Finite R S] :
     haveI : IsDomain R := (FaithfulSMul.algebraMap_injective R S).isDomain
     FiniteDimensional (FractionRing R) (FractionRing S) :=
   haveI : IsDomain R := (FaithfulSMul.algebraMap_injective R S).isDomain
-  Module.Finite_of_isLocalization R S _ _ R⁰
+  Module.Finite.of_isLocalization R S _ _ R⁰
 
 -- TODO: add statement about how rank of `FractionRing S` as an `FractionRing R`-module
 -- relates to the rank of `S` as an `R`-module, after #22966
