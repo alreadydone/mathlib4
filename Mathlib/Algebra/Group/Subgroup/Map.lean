@@ -354,10 +354,10 @@ variable (H : Subgroup G)
 
 @[to_additive]
 instance map_isMulCommutative (f : G →* G') [IsMulCommutative H] : IsMulCommutative (H.map f) :=
-  ⟨⟨by
+  ⟨by
       rintro ⟨-, a, ha, rfl⟩ ⟨-, b, hb, rfl⟩
       rw [Subtype.ext_iff, coe_mul, coe_mul, Subtype.coe_mk, Subtype.coe_mk, ← map_mul, ← map_mul]
-      exact congr_arg f (Subtype.ext_iff.mp (mul_comm (⟨a, ha⟩ : H) ⟨b, hb⟩))⟩⟩
+      exact congr_arg f (Subtype.ext_iff.mp (mul_comm (⟨a, ha⟩ : H) ⟨b, hb⟩))⟩
 
 @[deprecated (since := "2025-04-09")] alias map_isCommutative := map_isMulCommutative
 @[deprecated (since := "2025-04-09")] alias _root_.AddSubgroup.map_isCommutative :=
@@ -366,12 +366,12 @@ instance map_isMulCommutative (f : G →* G') [IsMulCommutative H] : IsMulCommut
 @[to_additive]
 theorem comap_injective_isMulCommutative {f : G' →* G} (hf : Injective f) [IsMulCommutative H] :
     IsMulCommutative (H.comap f) :=
-  ⟨⟨fun a b =>
+  ⟨fun a b =>
       Subtype.ext
         (by
           have := mul_comm (⟨f a, a.2⟩ : H) (⟨f b, b.2⟩ : H)
           rwa [Subtype.ext_iff, coe_mul, coe_mul, coe_mk, coe_mk, ← map_mul, ← map_mul,
-            hf.eq_iff] at this)⟩⟩
+            hf.eq_iff] at this)⟩
 
 @[deprecated (since := "2025-04-09")] alias comap_injective_isCommutative :=
   comap_injective_isMulCommutative

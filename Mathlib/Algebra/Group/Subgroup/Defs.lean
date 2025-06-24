@@ -701,7 +701,7 @@ end Normalizer
 @[to_additive "A subgroup of a commutative group is commutative."]
 instance commGroup_isMulCommutative {G : Type*} [CommGroup G] (H : Subgroup G) :
     IsMulCommutative H :=
-  ⟨CommMagma.to_isCommutative⟩
+  CommMagma.to_isCommutative
 
 @[deprecated (since := "2025-04-09")] alias commGroup_isCommutative := commGroup_isMulCommutative
 @[deprecated (since := "2025-04-09")] alias _root_.AddSubgroup.addCommGroup_isCommutative :=

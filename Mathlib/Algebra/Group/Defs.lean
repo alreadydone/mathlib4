@@ -1154,20 +1154,18 @@ end CommGroup
 
 section IsCommutative
 
-/-- A Prop stating that the addition is commutative. -/
-class IsAddCommutative (M : Type*) [Add M] : Prop where
-  is_comm : Std.Commutative (α := M) (· + ·)
+theorem Std.commutative_iff {α} (op : α → α → α) : Commutative op ↔ ∀ a b, op a b = op b a :=
+  ⟨fun ⟨h⟩ ↦ h, fun h ↦ ⟨h⟩⟩
 
 /-- A Prop stating that the multiplication is commutative. -/
-@[to_additive]
-class IsMulCommutative (M : Type*) [Mul M] : Prop where
-  is_comm : Std.Commutative (α := M) (· * ·)
+@[to_additive "A Prop stating that the addition is commutative."]
+abbrev IsMulCommutative (M : Type*) [Mul M] : Prop := Std.Commutative (α := M) (· * ·)
 
 @[to_additive]
 instance (priority := 100) CommMonoid.ofIsMulCommutative {M : Type*} [Monoid M]
     [IsMulCommutative M] :
     CommMonoid M where
-  mul_comm := IsMulCommutative.is_comm.comm
+  mul_comm := Std.Commutative.comm
 
 @[to_additive]
 instance (priority := 100) CommGroup.ofIsMulCommutative {G : Type*} [Group G] [IsMulCommutative G] :

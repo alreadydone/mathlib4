@@ -929,14 +929,29 @@ end generator
 
 section prod
 
+-- TODO: move this
+@[to_additive]
+theorem Prod.isMulCommutative_iff {M N : Type*} [Nonempty M] [Nonempty N] [Mul M] [Mul N] :
+    IsMulCommutative (M × N) ↔ IsMulCommutative M ∧ IsMulCommutative N := by
+  simp_rw [IsMulCommutative, Std.commutative_iff, Prod.forall, Prod.ext_iff]
+  have m₀ := Classical.arbitrary M
+  have n₀ := Classical.arbitrary N
+  exact ⟨fun h ↦ ⟨fun m m' ↦ (h m n₀ m' n₀).1, fun n n' ↦ (h m₀ n m₀ n').2⟩,
+    fun h _ _ _ _ ↦ ⟨h.1 .., h.2 ..⟩⟩
+
 /-- The product of two finite groups is cyclic iff
 both of them are cyclic and their orders are coprime. -/
 @[to_additive "The product of two finite additive groups is cyclic iff
 both of them are cyclic and their orders are coprime."]
 theorem Group.isCyclic_prod_iff
-    {M N : Type*} [CommGroup M] [Finite M] [CommGroup N] [Finite N] :
+    {M N : Type*} [Group M] [Finite M] [Group N] [Finite N] :
     IsCyclic (M × N) ↔
       IsCyclic M ∧ IsCyclic N ∧ (Nat.card M).Coprime (Nat.card N) := by
+  by_cases h : IsMulCommutative (M × N)
+  on_goal 2 =>
+    exact iff_of_false (mt (fun _ ↦ by infer_instance) h)
+      (mt (fun ⟨_, _, _⟩ ↦ Prod.isMulCommutative_iff.mpr ⟨inferInstance, inferInstance⟩) h)
+  cases Prod.isMulCommutative_iff.mp h
   simp only [IsCyclic.iff_exponent_eq_card, Monoid.exponent_prod, Nat.card_prod, lcm_eq_nat_lcm]
   refine ⟨fun h ↦ ?_, fun ⟨hM, hN, hMN⟩ ↦ by rw [hM, hN, hMN.lcm_eq_mul]⟩
   have h1 := dvd_antisymm (Nat.lcm_dvd_mul (Nat.card M) (Nat.card N))
