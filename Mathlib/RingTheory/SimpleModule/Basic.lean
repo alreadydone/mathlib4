@@ -358,7 +358,7 @@ theorem IsSemisimpleModule.sup {p q : Submodule R M}
   exact isSemisimpleModule_biSup_of_isSemisimpleModule_submodule (by rintro (_|_) _ <;> assumption)
 
 variable (R M) in
-theorem IsSemisimpleRing.exists_linearEquiv_ideal_of_isSimpleModule [IsSemisimpleRing R]
+theorem IsSemisimpleRing.exists_ideal_linearEquiv_of_isSimpleModule [IsSemisimpleRing R]
     [h : IsSimpleModule R M] : ∃ I : Ideal R, Nonempty (M ≃ₗ[R] I) :=
   have ⟨J, _, ⟨e⟩⟩ := isSimpleModule_iff_quot_maximal.mp h
   have ⟨I, ⟨e'⟩⟩ := IsSemisimpleModule.exists_submodule_linearEquiv_quotient J

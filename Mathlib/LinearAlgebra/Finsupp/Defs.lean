@@ -283,7 +283,7 @@ end
 
 namespace Module.End
 
-variable (ι : Type*) {R M : Type*} [Semiring R] [AddCommMonoid M] [Module R M]
+variable (ι : Type*) {R₀ R M : Type*} [Semiring R] [AddCommMonoid M] [Module R M]
 
 /-- If `M` is an `R`-module and `ι` is a type, then an additive endomorphism of `M` that
 commutes with all `R`-endomorphisms of `M` gives rise to an additive endomorphism of `ι →₀ M`

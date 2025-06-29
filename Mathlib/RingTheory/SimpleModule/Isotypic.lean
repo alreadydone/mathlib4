@@ -44,13 +44,22 @@ theorem IsIsotypicOfType.of_isSimpleModule [IsSimpleModule R M] : IsIsotypicOfTy
 
 variable {R}
 
-theorem IsIsotypic.of_self [IsSemisimpleRing R] (h : IsIsotypic R R) : IsIsotypic R M :=
-  fun m _ m' _ ↦
-    have ⟨_, ⟨e⟩⟩ := IsSemisimpleRing.exists_linearEquiv_ideal_of_isSimpleModule R m
-    have ⟨_, ⟨e'⟩⟩ := IsSemisimpleRing.exists_linearEquiv_ideal_of_isSimpleModule R m'
-    have := IsSimpleModule.congr e.symm
-    have := IsSimpleModule.congr e'.symm
-    ⟨e'.trans <| (h _ _).some.trans e.symm⟩
+namespace IsIsotypic
+
+variable [IsSemisimpleRing R] (h : IsIsotypic R R)
+include h
+
+theorem nonempty_linearEquiv_of_isSimpleModule [IsSimpleModule R M] [IsSimpleModule R N] :
+    Nonempty (M ≃ₗ[R] N) :=
+  have ⟨_, ⟨e⟩⟩ := IsSemisimpleRing.exists_ideal_linearEquiv_of_isSimpleModule R M
+  have ⟨_, ⟨e'⟩⟩ := IsSemisimpleRing.exists_ideal_linearEquiv_of_isSimpleModule R N
+  have := IsSimpleModule.congr e.symm
+  have := IsSimpleModule.congr e'.symm
+  ⟨e.trans <| (h _ _).some.trans e'.symm⟩
+
+theorem of_self : IsIsotypic R M := fun m _ m' _ ↦ h.nonempty_linearEquiv_of_isSimpleModule m' m
+
+end IsIsotypic
 
 variable {M N S}
 

@@ -455,6 +455,14 @@ theorem ofLinear_toLinearMap {h₁ h₂} : (ofLinear f g h₁ h₂ : M ≃ₛₗ
 @[simp]
 theorem ofLinear_symm_toLinearMap {h₁ h₂} : (ofLinear f g h₁ h₂ : M ≃ₛₗ[σ₁₂] M₂).symm = g := rfl
 
+/-- Linear automorphisms are exactly the units in the monoid of linear endomorphisms. -/
+@[simps] def toUnitsEnd : (M ≃ₗ[R] M) ≃* (Module.End R M)ˣ where
+  toFun e := .mk e e.symm (by ext; simp) (by ext; simp)
+  invFun u := .ofLinear u u.inv u.val_inv u.inv_val
+  left_inv _ := rfl
+  right_inv _ := rfl
+  map_mul' _ _ := rfl
+
 end
 
 end AddCommMonoid

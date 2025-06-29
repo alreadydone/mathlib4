@@ -3,8 +3,12 @@ Copyright (c) 2025 Junyan Xu. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Junyan Xu
 -/
+import Mathlib.LinearAlgebra.Basis.VectorSpace
+import Mathlib.LinearAlgebra.Dimension.Constructions
 import Mathlib.LinearAlgebra.FreeModule.Finite.Basic
 import Mathlib.RingTheory.FiniteLength
+--import Mathlib.RingTheory.Length
+import Mathlib.RingTheory.Idempotents
 import Mathlib.RingTheory.SimpleModule.Isotypic
 import Mathlib.RingTheory.SimpleRing.Congr
 import Mathlib.RingTheory.SimpleRing.Matrix
@@ -87,6 +91,56 @@ theorem exists_algEquiv_matrix_divisionRing_finite [Module.Finite R₀ R] :
     (Matrix.entryLinearMap R₀ _ (0 : Fin n) (0 : Fin n)) fun f ↦ ⟨fun _ _ ↦ f, rfl⟩, ⟨e⟩⟩
 
 end IsSimpleRing
+
+namespace DivisionRing
+
+variable {D E n m : Type*} [DivisionRing D] [DivisionRing E] [Fintype n] [Fintype m]
+
+theorem dvd_of_end_ringHom_end (f : Module.End D (n → D) →+* Module.End E (m → E)) :
+    Fintype.card n ∣ Fintype.card m := by
+  classical
+  have coi := (CompleteOrthogonalIdempotents.singleCompProj D fun _ ↦ D).map f
+  set e := f ∘ Module.End.singleCompProj D fun _ ↦ D
+  have (i j : n) : ∃ e' : (m → E) ≃ₗ[E] m → E, e j = e' ∘ₗ e i ∘ₗ e'.symm := by
+    have ⟨e', eq⟩ := Module.End.singleCompProj_eq_conj D D i j
+    use LinearEquiv.toUnitsEnd.symm ((LinearEquiv.toUnitsEnd e').map f)
+    convert congr(f $eq)
+    simp_rw [← LinearMap.mul_eq_comp, map_mul]; rfl
+  obtain _ | ⟨⟨i⟩⟩ := isEmpty_or_nonempty n
+  · cases isEmpty_or_nonempty m; · simp
+    exact (not_subsingleton _ f.codomain_trivial).elim
+  choose e' eq using this i
+  have : (m → E) ≃ₗ[E] n → LinearMap.range (e i) := coi.linearEquivPiRange.trans <|
+    .piCongrRight fun i ↦ .trans (.ofEq _ _ <| congr_arg LinearMap.range (eq i)) <|
+    .symm <| .trans ((e' i).submoduleMap _) <| .ofEq _ _ <| by simp [LinearMap.range_comp]
+  have := this.finrank_eq
+  rw [Module.finrank_fintype_fun_eq_card, Module.finrank, rank_fun_eq_lift_mul,
+    map_mul, Cardinal.toNat_natCast, Cardinal.toNat_lift] at this
+  exact ⟨_, this⟩
+
+theorem dvd_of_matrix_ringHom_matrix [DecidableEq n] [DecidableEq m]
+    (f : Matrix n n D →+* Matrix m m E) :
+    Fintype.card n ∣ Fintype.card m :=
+  dvd_of_end_ringHom_end <| (matrixRingEquivEndVecMulOpposite.toRingHom.comp
+    (f.comp matrixRingEquivEndVecMulOpposite.symm.toRingHom)).unop
+
+theorem eq_of_end_ringEquiv_end (e : Module.End D (n → D) ≃+* Module.End E (m → E)) :
+    Fintype.card n = Fintype.card m :=
+  (dvd_of_end_ringHom_end e.toRingHom).antisymm (dvd_of_end_ringHom_end e.symm.toRingHom)
+
+theorem eq_of_matrix_ringEquiv_matrix [DecidableEq n] [DecidableEq m]
+    (e : Matrix n n D ≃+* Matrix m m E) :
+    Fintype.card n = Fintype.card m :=
+  (dvd_of_matrix_ringHom_matrix e.toRingHom).antisymm
+    (dvd_of_matrix_ringHom_matrix e.symm.toRingHom)
+
+variable [CommSemiring R] [Algebra R D] [Algebra R E]
+
+theorem nonempty_algEquiv_of_end_algEquiv_end
+    (e : Module.End D (n →₀ D) ≃ₐ[R] Module.End E (m →₀ E)) : Nonempty (D ≃ₐ[R] E) := by
+  _
+
+end DivisionRing
 
 namespace IsSemisimpleModule
 
@@ -189,6 +243,10 @@ end IsSemisimpleRing
 
 theorem isSemisimpleRing_mulOpposite_iff : IsSemisimpleRing Rᵐᵒᵖ ↔ IsSemisimpleRing R :=
   ⟨fun _ ↦ (RingEquiv.opOp R).symm.isSemisimpleRing, fun _ ↦ inferInstance⟩
+
+theorem isSimpleRing_isArtinianRing_mulOpposite_iff :
+    IsSimpleRing Rᵐᵒᵖ ∧ IsArtinianRing Rᵐᵒᵖ ↔ IsSimpleRing R ∧ IsArtinianRing R :=
+
 
 /-- The existence part of the Artin–Wedderburn theorem. -/
 theorem isSemisimpleRing_iff_pi_matrix_divisionRing : IsSemisimpleRing R ↔

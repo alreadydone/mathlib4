@@ -5,6 +5,7 @@ Authors: Andrew Yang
 -/
 import Mathlib.Algebra.BigOperators.Fin
 import Mathlib.Algebra.GeomSum
+import Mathlib.LinearAlgebra.Dimension.Finrank
 import Mathlib.RingTheory.Ideal.Quotient.Operations
 import Mathlib.RingTheory.Nilpotent.Defs
 
@@ -123,31 +124,31 @@ A family `{ eᵢ }` of idempotent elements is complete orthogonal if
 structure CompleteOrthogonalIdempotents (e : I → R) : Prop extends OrthogonalIdempotents e where
   complete : ∑ i, e i = 1
 
+namespace CompleteOrthogonalIdempotents
+
 /-- If a family is complete orthogonal, it consists of idempotents. -/
-lemma CompleteOrthogonalIdempotents.iff_ortho_complete :
+lemma iff_ortho_complete :
     CompleteOrthogonalIdempotents e ↔ Pairwise (e · * e · = 0) ∧ ∑ i, e i = 1 := by
   rw [completeOrthogonalIdempotents_iff, orthogonalIdempotents_iff, and_assoc, and_iff_right_of_imp]
   intro ⟨ortho, complete⟩ i
   apply_fun (e i * ·) at complete
-  rwa [Finset.mul_sum, Finset.sum_eq_single i (fun _ _ ne ↦ ortho ne.symm) (by simp at ·), mul_one]
+  rwa [Finset.mul_sum, Fintype.sum_eq_single i (fun _ ne ↦ ortho ne.symm), mul_one]
     at complete
 
-lemma CompleteOrthogonalIdempotents.pair_iff'ₛ {x y : R} :
+lemma pair_iff'ₛ {x y : R} :
     CompleteOrthogonalIdempotents ![x, y] ↔ x * y = 0 ∧ y * x = 0 ∧ x + y = 1 := by
   simp [iff_ortho_complete, Pairwise, Fin.forall_fin_two, and_assoc]
 
-lemma CompleteOrthogonalIdempotents.pair_iffₛ {R} [CommSemiring R] {x y : R} :
+lemma pair_iffₛ {R} [CommSemiring R] {x y : R} :
     CompleteOrthogonalIdempotents ![x, y] ↔ x * y = 0 ∧ x + y = 1 := by
   rw [pair_iff'ₛ, and_left_comm, and_iff_right_of_imp]; exact (mul_comm x y ▸ ·.1)
 
-lemma CompleteOrthogonalIdempotents.unique_iff [Unique I] :
-    CompleteOrthogonalIdempotents e ↔ e default = 1 := by
+lemma unique_iff [Unique I] : CompleteOrthogonalIdempotents e ↔ e default = 1 := by
   rw [completeOrthogonalIdempotents_iff, OrthogonalIdempotents.unique, Fintype.sum_unique,
     and_iff_right_iff_imp]
   exact (· ▸ IsIdempotentElem.one)
 
-lemma CompleteOrthogonalIdempotents.single {I : Type*} [Fintype I] [DecidableEq I]
-    (R : I → Type*) [∀ i, Semiring (R i)] :
+lemma single {I : Type*} [Fintype I] [DecidableEq I] (R : I → Type*) [∀ i, Semiring (R i)] :
     CompleteOrthogonalIdempotents (Pi.single (f := R) · 1) := by
   refine ⟨⟨by simp [IsIdempotentElem, ← Pi.single_mul], ?_⟩, Finset.univ_sum_single 1⟩
   intros i j hij
@@ -156,25 +157,58 @@ lemma CompleteOrthogonalIdempotents.single {I : Type*} [Fintype I] [DecidableEq 
   · subst hi; simp [hij]
   · simp [hi]
 
-lemma CompleteOrthogonalIdempotents.map (he : CompleteOrthogonalIdempotents e) :
-    CompleteOrthogonalIdempotents (f ∘ e) where
+lemma map (he : CompleteOrthogonalIdempotents e) : CompleteOrthogonalIdempotents (f ∘ e) where
   __ := he.toOrthogonalIdempotents.map f
   complete := by simp only [Function.comp_apply, ← map_sum, he.complete, map_one]
 
-lemma CompleteOrthogonalIdempotents.map_injective_iff (hf : Function.Injective f) :
+lemma map_injective_iff (hf : Function.Injective f) :
     CompleteOrthogonalIdempotents (f ∘ e) ↔ CompleteOrthogonalIdempotents e := by
   simp [completeOrthogonalIdempotents_iff, ← hf.eq_iff, apply_ite,
     OrthogonalIdempotents.map_injective_iff f hf]
 
-lemma CompleteOrthogonalIdempotents.equiv {J} [Fintype J] (i : J ≃ I) :
+lemma equiv {J} [Fintype J] (i : J ≃ I) :
     CompleteOrthogonalIdempotents (e ∘ i) ↔ CompleteOrthogonalIdempotents e := by
   simp only [completeOrthogonalIdempotents_iff, OrthogonalIdempotents.equiv, Function.comp_apply,
     and_congr_right_iff, Fintype.sum_equiv i _ e (fun _ ↦ rfl)]
 
 @[nontriviality]
-lemma CompleteOrthogonalIdempotents.of_subsingleton [Subsingleton R] :
-    CompleteOrthogonalIdempotents e :=
+lemma of_subsingleton [Subsingleton R] : CompleteOrthogonalIdempotents e :=
   ⟨⟨fun _ ↦ Subsingleton.elim _ _, fun _ _ _ ↦ Subsingleton.elim _ _⟩, Subsingleton.elim _ _⟩
+
+variable (R) in
+protected def singleCompProj [DecidableEq I]
+    (φ : I → Type*) [∀ i, AddCommMonoid (φ i)] [∀ i, Module R (φ i)] :
+    CompleteOrthogonalIdempotents (Module.End.singleCompProj R φ) where
+  idem i := by ext; simp
+  ortho i j hij := by
+    ext k _ l
+    obtain rfl | hli := eq_or_ne l i
+    · simp [Pi.single_eq_of_ne hij]
+    · apply Pi.single_eq_of_ne hli
+  complete := by ext; simp
+
+variable {M : Type*} [AddCommMonoid M] [Module R M]
+variable {e : I → Module.End R M} (he : CompleteOrthogonalIdempotents e) {i j : I}
+include he
+
+theorem moduleEnd_apply_of_ne (ne : i ≠ j) (m : LinearMap.range (e j)) : e i m = 0 := by
+  obtain ⟨_, m, rfl⟩ := m; exact congr($(he.ortho ne) m)
+
+theorem moduleEnd_apply_same (m : LinearMap.range (e i)) : e i m = m := by
+  obtain ⟨_, m, rfl⟩ := m; exact congr($(he.idem i) m)
+
+noncomputable def linearEquivPiRange : M ≃ₗ[R] Π i, LinearMap.range (e i) := by
+  classical
+  refine .ofLinear (.pi fun _ ↦ .rangeRestrict _) (.lsum _ _ ℕ fun _ ↦ Submodule.subtype _)
+    ?_ (by convert he.complete; ext; simp)
+  ext i m j
+  simp only [LinearMap.lsum_apply, LinearMap.coe_comp, LinearMap.coeFn_sum, Submodule.coe_subtype,
+    LinearMap.coe_proj, LinearMap.coe_single, Function.comp_apply, Finset.sum_apply, Function.eval,
+    LinearMap.pi_apply, map_sum, AddSubmonoidClass.coe_finset_sum, LinearMap.codRestrict_apply,
+    LinearMap.id_comp]
+  rw [Fintype.sum_eq_single j fun _ h ↦ he.moduleEnd_apply_of_ne h.symm _, he.moduleEnd_apply_same]
+
+end CompleteOrthogonalIdempotents
 
 end Semiring
 
@@ -530,10 +564,10 @@ def CompleteOrthogonalIdempotents.ringEquivOfIsMulCentral [Semiring R]
     simp_rw [(hc _).comm, mul_assoc, (he.idem _).eq, ← Finset.mul_sum, he.complete, mul_one]
   right_inv r := funext fun i ↦ Subtype.ext <| by
     simp_rw [Finset.mul_sum, Finset.sum_mul]
-    rw [Finset.sum_eq_single i _ (by simp at ·)]
+    rw [Fintype.sum_eq_single i]
     · have ⟨r', eq⟩ := (r i).2
       rw [← eq]; simp_rw [← mul_assoc, (he.idem i).eq, mul_assoc, (he.idem i).eq]
-    · intro j _ ne; have ⟨r', eq⟩ := (r j).2
+    · intro j ne; have ⟨r', eq⟩ := (r j).2
       rw [← eq]; simp_rw [← mul_assoc, he.ortho ne.symm, zero_mul]
   map_mul' r₁ r₂ := funext fun i ↦ Subtype.ext <|
     calc e i * (r₁ * r₂) * e i

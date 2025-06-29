@@ -1041,4 +1041,15 @@ def endVecAlgEquivMatrixEnd :
       LinearMap.coe_mk, AddHom.coe_mk, algebraMap_matrix_apply]
     split_ifs <;> rfl
 
+variable {A ι}
+
+/-- A matrix algebra is isomorphic to the opposite of an endomorphism algebra. -/
+def matrixAlgEquivEndVecMulOpposite : Matrix ι ι A ≃ₐ[R] (Module.End A (ι → A))ᵐᵒᵖ :=
+  .trans (.opOp R _) <| .op <| .trans (.symm .mopMatrix) <| .trans
+    (.mapMatrix <| .moduleEndSelf _) <| .symm <| endVecAlgEquivMatrixEnd ..
+
+/-- A matrix ring is isomorphic to the opposite of an endomorphism ring. -/
+def matrixRingEquivEndVecMulOpposite : Matrix ι ι A ≃+* (Module.End A (ι → A))ᵐᵒᵖ :=
+  (matrixAlgEquivEndVecMulOpposite ℕ).toRingEquiv
+
 end

@@ -125,30 +125,32 @@ theorem apply_single [AddCommMonoid M] [Module R M] [DecidableEq ι] (f : (i : �
     (i j : ι) (x : φ i) : f j (Pi.single i x j) = (Pi.single i (f i x) : ι → M) j :=
   Pi.apply_single (fun i => f i) (fun i => (f i).map_zero) _ _ _
 
-variable (R φ)
+variable (R φ) [DecidableEq ι]
 
 /-- The `LinearMap` version of `AddMonoidHom.single` and `Pi.single`. -/
-def single [DecidableEq ι] (i : ι) : φ i →ₗ[R] (i : ι) → φ i :=
+def single (i : ι) : φ i →ₗ[R] (i : ι) → φ i :=
   { AddMonoidHom.single φ i with
     toFun := Pi.single i
     map_smul' := Pi.single_smul i }
 
-lemma single_apply [DecidableEq ι] {i : ι} (v : φ i) :
+lemma single_apply {i : ι} (v : φ i) :
     single R φ i v = Pi.single i v :=
   rfl
 
 @[simp]
-theorem coe_single [DecidableEq ι] (i : ι) :
+theorem coe_single (i : ι) :
     ⇑(single R φ i : φ i →ₗ[R] (i : ι) → φ i) = Pi.single i :=
   rfl
-
-variable [DecidableEq ι]
 
 theorem proj_comp_single_same (i : ι) : (proj i).comp (single R φ i) = id :=
   LinearMap.ext <| Pi.single_eq_same i
 
 theorem proj_comp_single_ne (i j : ι) (h : i ≠ j) : (proj i).comp (single R φ j) = 0 :=
   LinearMap.ext <| Pi.single_eq_of_ne h
+
+/-- The endomorphism on a product module that is the identity on the `i`th component and zero on
+the other components. -/
+abbrev _root_.Module.End.singleCompProj (i : ι) : Module.End R (Π i, φ i) := single R _ i ∘ₗ proj i
 
 theorem iSup_range_single_le_iInf_ker_proj (I J : Set ι) (h : Disjoint I J) :
     ⨆ i ∈ I, range (single R φ i) ≤ ⨅ i ∈ J, ker (proj i : (∀ i, φ i) →ₗ[R] φ i) := by
@@ -574,6 +576,22 @@ def finTwoArrow : (Fin 2 → M) ≃ₗ[R] M × M :=
   { finTwoArrowEquiv M, piFinTwo R fun _ => M with }
 
 end LinearEquiv
+
+open LinearMap in
+theorem Module.End.singleCompProj_eq_conj (R M) [Semiring R] [AddCommMonoid M] [Module R M]
+    [DecidableEq ι] (i j : ι) :
+    ∃ e : (ι → M) ≃ₗ[R] ι → M,
+      singleCompProj R (fun _ ↦ M) j = e ∘ₗ singleCompProj R (fun _ ↦ M) i ∘ₗ e.symm := by
+  use LinearEquiv.piCongrLeft R (fun _ ↦ M) (Equiv.swap j i)
+  ext k l
+  simp only [coe_comp, coe_single, coe_proj, Function.comp_apply, eval, Pi.single_apply,
+    LinearEquiv.piCongrLeft, Equiv.symm_swap, LinearEquiv.symm_symm, LinearEquiv.coe_coe,
+    LinearEquiv.piCongrLeft'_apply, Equiv.swap_apply_right, LinearEquiv.piCongrLeft'_symm_apply,
+    Equiv.piCongrLeft'_symm, Equiv.piCongrLeft'_apply]
+  split_ifs with h₁ h₂ h₃
+  any_goals rfl
+  · simp [h₁] at h₂
+  · apply (h₁ _).elim; simpa [Equiv.swap_apply_eq_iff] using h₃
 
 section Extend
 
