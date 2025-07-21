@@ -7,6 +7,7 @@ import Mathlib.AlgebraicGeometry.EllipticCurve.Affine.Formula
 import Mathlib.LinearAlgebra.FreeModule.Norm
 import Mathlib.RingTheory.ClassGroup
 import Mathlib.RingTheory.Polynomial.UniqueFactorization
+import Mathlib.Algebra.Field.ZMod
 
 /-!
 # Nonsingular points and the group law in affine coordinates
@@ -709,3 +710,35 @@ end Point
 end Affine
 
 end WeierstrassCurve
+
+open WeierstrassCurve Affine Point
+
+-- Prime is taken from example 3.5 of [1]
+abbrev p := 29
+
+abbrev 𝔽29 := ZMod 29
+abbrev C29 := Affine 𝔽29
+
+-- Parameters for a tiny example curve (see example 3.5 of [1])
+abbrev a := 4
+abbrev b := 20
+abbrev n := 37
+
+instance : Fact (Nat.Prime p) := by decide
+instance : Fact (Nat.Prime n) := by decide
+
+abbrev curve : C29 := ⟨0, 0, 0, a, b⟩
+
+def basepoint : curve.Point :=
+  .some (x := 1) (y := 5) <| by
+    rw [nonsingular_iff, equation_iff]
+    decide
+
+example : (5 * 5 / 5 : ZMod 37) = 5 := by grind only
+
+
+theorem valid_base_order : addOrderOf basepoint = n := by
+  apply addOrderOf_eq_prime
+  · simp_rw [succ_nsmul, (· + ·), Add.add, Point.add]
+    norm_num
+  · sorry
