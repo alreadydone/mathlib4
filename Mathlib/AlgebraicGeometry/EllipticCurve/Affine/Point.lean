@@ -736,9 +736,8 @@ def basepoint : curve.Point :=
 
 example : (5 * 5 / 5 : ZMod 37) = 5 := by grind only
 
-
+set_option maxRecDepth 1606
 theorem valid_base_order : addOrderOf basepoint = n := by
   apply addOrderOf_eq_prime
-  · simp_rw [succ_nsmul, (· + ·), Add.add, Point.add]
-    norm_num
-  · sorry
+  · rfl
+  · simp [basepoint]
