@@ -43,25 +43,21 @@ variable (X : TopCat.{v})
 /-- The presheaf of dependently typed functions on `X`, with fibres given by a type family `T`.
 There is no requirement that the functions are continuous, here.
 -/
-def presheafToTypes (T : X → Type v) : X.Presheaf (Type v) where
+def presheafToTypes (T : X → Type u) : X.Presheaf (Type max u v) where
   obj U := ∀ x : U.unop, T x
   map {U V} i g := fun x : V.unop => g (i.unop x)
-  map_id U := by
-    ext g
-    rfl
-  map_comp {U V W} i j := rfl
 set_option linter.uppercaseLean3 false in
 #align Top.presheaf_to_Types TopCat.presheafToTypes
 
 @[simp]
-theorem presheafToTypes_obj {T : X → Type v} {U : (Opens X)ᵒᵖ} :
+theorem presheafToTypes_obj {T : X → Type u} {U : (Opens X)ᵒᵖ} :
     (presheafToTypes X T).obj U = ∀ x : U.unop, T x :=
   rfl
 set_option linter.uppercaseLean3 false in
 #align Top.presheaf_to_Types_obj TopCat.presheafToTypes_obj
 
 @[simp]
-theorem presheafToTypes_map {T : X → Type v} {U V : (Opens X)ᵒᵖ} {i : U ⟶ V} {f} :
+theorem presheafToTypes_map {T : X → Type u} {U V : (Opens X)ᵒᵖ} {i : U ⟶ V} {f} :
     (presheafToTypes X T).map i f = fun x => f (i.unop x) :=
   rfl
 set_option linter.uppercaseLean3 false in
@@ -76,25 +72,21 @@ set_option linter.uppercaseLean3 false in
 /-- The presheaf of functions on `X` with values in a type `T`.
 There is no requirement that the functions are continuous, here.
 -/
-def presheafToType (T : Type v) : X.Presheaf (Type v) where
+def presheafToType (T : Type u) : X.Presheaf (Type max u v) where
   obj U := U.unop → T
   map {U V} i g := g ∘ i.unop
-  map_id U := by
-    ext g
-    rfl
-  map_comp {U V W} i j := rfl
 set_option linter.uppercaseLean3 false in
 #align Top.presheaf_to_Type TopCat.presheafToType
 
 @[simp]
-theorem presheafToType_obj {T : Type v} {U : (Opens X)ᵒᵖ} :
+theorem presheafToType_obj {T : Type u} {U : (Opens X)ᵒᵖ} :
     (presheafToType X T).obj U = (U.unop → T) :=
   rfl
 set_option linter.uppercaseLean3 false in
 #align Top.presheaf_to_Type_obj TopCat.presheafToType_obj
 
 @[simp]
-theorem presheafToType_map {T : Type v} {U V : (Opens X)ᵒᵖ} {i : U ⟶ V} {f} :
+theorem presheafToType_map {T : Type u} {U V : (Opens X)ᵒᵖ} {i : U ⟶ V} {f} :
     (presheafToType X T).map i f = f ∘ i.unop :=
   rfl
 set_option linter.uppercaseLean3 false in
@@ -102,8 +94,9 @@ set_option linter.uppercaseLean3 false in
 
 /-- The presheaf of continuous functions on `X` with values in fixed target topological space
 `T`. -/
-def presheafToTop (T : TopCat.{v}) : X.Presheaf (Type v) :=
-  (Opens.toTopCat X).op ⋙ yoneda.obj T
+def presheafToTop (T : TopCat.{u}) : X.Presheaf (Type max u v) where
+  obj U := C(U.unop, T)
+  map {U V} i g := g.comp ⟨_, continuous_inclusion i.unop.le⟩
 set_option linter.uppercaseLean3 false in
 #align Top.presheaf_to_Top TopCat.presheafToTop
 
@@ -160,18 +153,10 @@ from `X : TopCat` to `R : TopCommRingCat` form a commutative ring, functorial in
 def commRingYoneda : TopCommRingCat.{u} ⥤ TopCat.{u}ᵒᵖ ⥤ CommRingCat.{u} where
   obj R :=
     { obj := fun X => continuousFunctions X R
-      map := fun {X Y} f => continuousFunctions.pullback f R
-      map_id := fun X => by
-        ext
-        rfl
-      map_comp := fun {X Y Z} f g => rfl }
+      map := fun {X Y} f => continuousFunctions.pullback f R }
   map {R S} φ :=
     { app := fun X => continuousFunctions.map X φ
       naturality := fun X Y f => rfl }
-  map_id X := by
-    ext
-    rfl
-  map_comp {X Y Z} f g := rfl
 set_option linter.uppercaseLean3 false in
 #align Top.CommRing_yoneda TopCat.commRingYoneda
 

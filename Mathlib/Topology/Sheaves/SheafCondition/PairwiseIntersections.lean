@@ -278,8 +278,7 @@ set_option linter.uppercaseLean3 false in
 to the reformulation in terms of a limit diagram over `U i` and `U i ⊓ U j`.
 -/
 theorem isSheaf_iff_isSheafPairwiseIntersections : F.IsSheaf ↔ F.IsSheafPairwiseIntersections := by
-  rw [isSheaf_iff_isSheafOpensLeCover,
-    isSheafOpensLeCover_iff_isSheafPairwiseIntersections]
+  rw [isSheaf_iff_isSheafOpensLeCover, isSheafOpensLeCover_iff_isSheafPairwiseIntersections]
 set_option linter.uppercaseLean3 false in
 #align Top.presheaf.is_sheaf_iff_is_sheaf_pairwise_intersections TopCat.Presheaf.isSheaf_iff_isSheafPairwiseIntersections
 

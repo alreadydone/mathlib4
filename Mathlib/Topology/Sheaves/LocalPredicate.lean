@@ -38,13 +38,13 @@ We give conditions sufficient to show that this map is injective and/or surjecti
 -/
 
 
-universe v
+universe u v
 
 noncomputable section
 
 variable {X : TopCat.{v}}
 
-variable (T : X → Type v)
+variable (T : X → Type u)
 
 open TopologicalSpace
 
@@ -77,14 +77,14 @@ variable (X)
 /-- Continuity is a "prelocal" predicate on functions to a fixed topological space `T`.
 -/
 @[simps!]
-def continuousPrelocal (T : TopCat.{v}) : PrelocalPredicate fun _ : X => T where
+def continuousPrelocal (T : TopCat.{u}) : PrelocalPredicate fun _ : X => T where
   pred {_} f := Continuous f
   res {_ _} i _ h := Continuous.comp h (Opens.openEmbedding_of_le i.le).continuous
 set_option linter.uppercaseLean3 false in
 #align Top.continuous_prelocal TopCat.continuousPrelocal
 
 /-- Satisfying the inhabited linter. -/
-instance inhabitedPrelocalPredicate (T : TopCat.{v}) :
+instance inhabitedPrelocalPredicate (T : TopCat.{u}) :
     Inhabited (PrelocalPredicate fun _ : X => T) :=
   ⟨continuousPrelocal X T⟩
 set_option linter.uppercaseLean3 false in
@@ -116,7 +116,7 @@ variable (X)
 
 /-- Continuity is a "local" predicate on functions to a fixed topological space `T`.
 -/
-def continuousLocal (T : TopCat.{v}) : LocalPredicate fun _ : X => T :=
+def continuousLocal (T : TopCat.{u}) : LocalPredicate fun _ : X => T :=
   { continuousPrelocal X T with
     locality := fun {U} f w => by
       apply continuous_iff_continuousAt.2
@@ -131,7 +131,7 @@ set_option linter.uppercaseLean3 false in
 #align Top.continuous_local TopCat.continuousLocal
 
 /-- Satisfying the inhabited linter. -/
-instance inhabitedLocalPredicate (T : TopCat.{v}) : Inhabited (LocalPredicate fun _ : X => T) :=
+instance inhabitedLocalPredicate (T : TopCat.{u}) : Inhabited (LocalPredicate fun _ : X => T) :=
   ⟨continuousLocal X T⟩
 set_option linter.uppercaseLean3 false in
 #align Top.inhabited_local_predicate TopCat.inhabitedLocalPredicate
@@ -141,7 +141,7 @@ variable {X T}
 /-- Given a `P : PrelocalPredicate`, we can always construct a `LocalPredicate`
 by asking that the condition from `P` holds locally near every point.
 -/
-def PrelocalPredicate.sheafify {T : X → Type v} (P : PrelocalPredicate T) : LocalPredicate T where
+def PrelocalPredicate.sheafify {T : X → Type u} (P : PrelocalPredicate T) : LocalPredicate T where
   pred {U} f := ∀ x : U, ∃ (V : Opens X) (_ : x.1 ∈ V) (i : V ⟶ U), P.pred fun x : V => f (i x : U)
   res {V U} i f w x := by
     specialize w (i x)
@@ -157,7 +157,7 @@ def PrelocalPredicate.sheafify {T : X → Type v} (P : PrelocalPredicate T) : Lo
 set_option linter.uppercaseLean3 false in
 #align Top.prelocal_predicate.sheafify TopCat.PrelocalPredicate.sheafify
 
-theorem PrelocalPredicate.sheafifyOf {T : X → Type v} {P : PrelocalPredicate T} {U : Opens X}
+theorem PrelocalPredicate.sheafifyOf {T : X → Type u} {P : PrelocalPredicate T} {U : Opens X}
     {f : ∀ x : U, T x} (h : P.pred f) : P.sheafify.pred f := fun x =>
   ⟨U, x.2, 𝟙 _, by convert h⟩
 set_option linter.uppercaseLean3 false in
@@ -166,7 +166,7 @@ set_option linter.uppercaseLean3 false in
 /-- The subpresheaf of dependent functions on `X` satisfying the "pre-local" predicate `P`.
 -/
 @[simps!]
-def subpresheafToTypes (P : PrelocalPredicate T) : Presheaf (Type v) X where
+def subpresheafToTypes (P : PrelocalPredicate T) : Presheaf (Type max u v) X where
   obj U := { f : ∀ x : U.unop , T x // P.pred f }
   map {U V} i f := ⟨fun x => f.1 (i.unop x), P.res i.unop f.1 f.2⟩
 set_option linter.uppercaseLean3 false in
@@ -179,7 +179,8 @@ variable (P : PrelocalPredicate T)
 /-- The natural transformation including the subpresheaf of functions satisfying a local predicate
 into the presheaf of all functions.
 -/
-def subtype : subpresheafToTypes P ⟶ presheafToTypes X T where app U f := f.1
+def subtype {T : X → Type v} (P : PrelocalPredicate T) :
+    subpresheafToTypes P ⟶ presheafToTypes X T where app U f := f.1
 set_option linter.uppercaseLean3 false in
 #align Top.subpresheaf_to_Types.subtype TopCat.subpresheafToTypes.subtype
 
@@ -188,7 +189,7 @@ open TopCat.Presheaf
 /-- The functions satisfying a local predicate satisfy the sheaf condition.
 -/
 theorem isSheaf (P : LocalPredicate T) : (subpresheafToTypes P.toPrelocalPredicate).IsSheaf :=
-  Presheaf.isSheaf_of_isSheafUniqueGluing_types.{v} _ fun ι U sf sf_comp => by
+  Presheaf.isSheaf_of_isSheafUniqueGluing_types _ fun ι U sf sf_comp => by
     -- We show the sheaf condition in terms of unique gluing.
     -- First we obtain a family of sections for the underlying sheaf of functions,
     -- by forgetting that the predicate holds
@@ -197,7 +198,8 @@ theorem isSheaf (P : LocalPredicate T) : (subpresheafToTypes P.toPrelocalPredica
     have sf'_comp : (presheafToTypes X T).IsCompatible U sf' := fun i j =>
       congr_arg Subtype.val (sf_comp i j)
     -- So, we can obtain a unique gluing
-    obtain ⟨gl, gl_spec, gl_uniq⟩ := (sheafToTypes X T).existsUnique_gluing U sf' sf'_comp
+    obtain ⟨gl, gl_spec, gl_uniq⟩ :=
+      (isSheaf_iff_isSheafUniqueGluing_types _).mp (sheafToTypes X T).cond U sf' sf'_comp
     refine' ⟨⟨gl, _⟩, _, _⟩
     · -- Our first goal is to show that this chosen gluing satisfies the
       -- predicate. Of course, we use locality of the predicate.
@@ -226,14 +228,15 @@ end subpresheafToTypes
 /-- The subsheaf of the sheaf of all dependently typed functions satisfying the local predicate `P`.
 -/
 @[simps]
-def subsheafToTypes (P : LocalPredicate T) : Sheaf (Type v) X :=
+def subsheafToTypes (P : LocalPredicate T) : Sheaf (Type max u v) X :=
   ⟨subpresheafToTypes P.toPrelocalPredicate, subpresheafToTypes.isSheaf P⟩
 set_option linter.uppercaseLean3 false in
 #align Top.subsheaf_to_Types TopCat.subsheafToTypes
 
 /-- There is a canonical map from the stalk to the original fiber, given by evaluating sections.
 -/
-def stalkToFiber (P : LocalPredicate T) (x : X) : (subsheafToTypes P).presheaf.stalk x ⟶ T x := by
+def stalkToFiber {T : X → Type v} (P : LocalPredicate T) (x : X) :
+    (subsheafToTypes P).presheaf.stalk x ⟶ T x := by
   refine'
     colimit.desc _
       { pt := T x
@@ -246,7 +249,7 @@ set_option linter.uppercaseLean3 false in
 #align Top.stalk_to_fiber TopCat.stalkToFiber
 
 -- Porting note : removed `simp` attribute, due to left hand side is not in simple normal form.
-theorem stalkToFiber_germ (P : LocalPredicate T) (U : Opens X) (x : U) (f) :
+theorem stalkToFiber_germ {T : X → Type v} (P : LocalPredicate T) (U : Opens X) (x : U) (f) :
     stalkToFiber P x ((subsheafToTypes P).presheaf.germ x f) = f.1 x := by
   dsimp [Presheaf.germ, stalkToFiber]
   cases x
@@ -257,7 +260,7 @@ set_option linter.uppercaseLean3 false in
 /-- The `stalkToFiber` map is surjective at `x` if
 every point in the fiber `T x` has an allowed section passing through it.
 -/
-theorem stalkToFiber_surjective (P : LocalPredicate T) (x : X)
+theorem stalkToFiber_surjective {T : X → Type v} (P : LocalPredicate T) (x : X)
     (w : ∀ t : T x, ∃ (U : OpenNhds x) (f : ∀ y : U.1, T y) (_ : P.pred f), f ⟨x, U.2⟩ = t) :
     Function.Surjective (stalkToFiber P x) := fun t => by
   rcases w t with ⟨U, f, h, rfl⟩
@@ -270,7 +273,7 @@ set_option linter.uppercaseLean3 false in
 /-- The `stalkToFiber` map is injective at `x` if any two allowed sections which agree at `x`
 agree on some neighborhood of `x`.
 -/
-theorem stalkToFiber_injective (P : LocalPredicate T) (x : X)
+theorem stalkToFiber_injective {T : X → Type v} (P : LocalPredicate T) (x : X)
     (w :
       ∀ (U V : OpenNhds x) (fU : ∀ y : U.1, T y) (_ : P.pred fU) (fV : ∀ y : V.1, T y)
         (_ : P.pred fV) (_ : fU ⟨x, U.2⟩ = fV ⟨x, V.2⟩),
