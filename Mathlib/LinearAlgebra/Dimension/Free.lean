@@ -66,10 +66,62 @@ theorem Module.finrank_mul_finrank : finrank F K * finrank K A = finrank F A := 
 end Tower
 
 variable {R : Type u} {M M₁ : Type v} {M' : Type v'}
-variable [Semiring R] [StrongRankCondition R]
+variable [Semiring R]
 variable [AddCommMonoid M] [Module R M] [Module.Free R M]
 variable [AddCommMonoid M'] [Module R M'] [Module.Free R M']
 variable [AddCommMonoid M₁] [Module R M₁] [Module.Free R M₁]
+
+namespace Module
+
+theorem finite_of_rank_eq_nat {n : ℕ} (h : Module.rank R M = n) :
+    Module.Finite R M := by
+  nontriviality R
+  obtain ⟨⟨ι, b⟩⟩ := Module.Free.exists_basis (R := R) (M := M)
+  have := mk_lt_aleph0_iff.mp <|
+    b.linearIndependent.cardinal_le_rank |>.trans_eq h |>.trans_lt <| nat_lt_aleph0 n
+  exact Module.Finite.of_basis b
+
+theorem finite_of_rank_eq_one (h : Module.rank R M = 1) :
+    Module.Finite R M :=
+  Module.finite_of_rank_eq_nat <| h.trans Nat.cast_one.symm
+
+/-- A free module of rank zero is trivial. -/
+lemma subsingleton_of_rank_zero (h : Module.rank R M = 0) : Subsingleton M := by
+  rw [← Basis.mk_eq_rank'' (Module.Free.chooseBasis R M), Cardinal.mk_eq_zero_iff] at h
+  exact (Module.Free.repr R M).subsingleton
+
+theorem finrank_of_not_finite (h : ¬Module.Finite R M) : finrank R M = 0 := by
+  rw [finrank, toNat_eq_zero, ← not_lt, Module.rank_lt_aleph0_iff]
+  exact .inr h
+
+theorem finite_of_finrank_pos (h : 0 < finrank R M) : Module.Finite R M := by
+  contrapose h
+  simp [finrank_of_not_finite h]
+
+theorem finite_of_finrank_eq_succ {n : ℕ} (hn : finrank R M = n.succ) : Module.Finite R M :=
+  finite_of_finrank_pos <| by rw [hn]; exact n.succ_pos
+
+variable {R M}
+
+/-- A free module with rank 1 has a basis with one element. -/
+noncomputable def basisUnique (ι : Type*) [Unique ι]
+    (h : finrank R M = 1) :
+    Basis ι R M :=
+  haveI : Module.Finite R M :=
+    Module.finite_of_finrank_pos (_root_.zero_lt_one.trans_le h.symm.le)
+  (finBasisOfFinrankEq R M h).reindex (Equiv.ofUnique _ _)
+
+@[simp]
+theorem basisUnique_repr_eq_zero_iff {ι : Type*} [Unique ι]
+    {h : finrank R M = 1} {v : M} {i : ι} :
+    (basisUnique ι h).repr v i = 0 ↔ v = 0 :=
+  ⟨fun hv =>
+    (basisUnique ι h).repr.map_eq_zero_iff.mp (Finsupp.ext fun j => Subsingleton.elim i j ▸ hv),
+    fun hv => by rw [hv, LinearEquiv.map_zero, Finsupp.zero_apply]⟩
+
+end Module
+
+variable [StrongRankCondition R]
 
 namespace Module.Free
 
@@ -164,27 +216,11 @@ variable {M M'}
 
 namespace Module
 
-/-- A free module of rank zero is trivial. -/
-lemma subsingleton_of_rank_zero (h : Module.rank R M = 0) : Subsingleton M := by
-  rw [← Basis.mk_eq_rank'' (Module.Free.chooseBasis R M), Cardinal.mk_eq_zero_iff] at h
-  exact (Module.Free.repr R M).subsingleton
-
 /-- See `rank_lt_aleph0` for the inverse direction without `Module.Free R M`. -/
 lemma rank_lt_aleph0_iff : Module.rank R M < ℵ₀ ↔ Module.Finite R M := by
   rw [Free.rank_eq_card_chooseBasisIndex, mk_lt_aleph0_iff]
   exact ⟨fun h ↦ Finite.of_basis (Free.chooseBasis R M),
     fun I ↦ Finite.of_fintype (Free.ChooseBasisIndex R M)⟩
-
-theorem finrank_of_not_finite (h : ¬Module.Finite R M) : finrank R M = 0 := by
-  rw [finrank, toNat_eq_zero, ← not_lt, Module.rank_lt_aleph0_iff]
-  exact .inr h
-
-theorem finite_of_finrank_pos (h : 0 < finrank R M) : Module.Finite R M := by
-  contrapose h
-  simp [finrank_of_not_finite h]
-
-theorem finite_of_finrank_eq_succ {n : ℕ} (hn : finrank R M = n.succ) : Module.Finite R M :=
-  finite_of_finrank_pos <| by rw [hn]; exact n.succ_pos
 
 theorem finite_iff_of_rank_eq_nsmul {W} [AddCommGroup W] [Module R W] [Module.Free R W] {n : ℕ}
     (hn : n ≠ 0) (hVW : Module.rank R M = n • Module.rank R W) :
@@ -202,23 +238,5 @@ noncomputable def finBasis [Module.Finite R M] :
 /-- A rank `n` free module has a basis indexed by `Fin n`. -/
 noncomputable def finBasisOfFinrankEq [Module.Finite R M] {n : ℕ} (hn : finrank R M = n) :
     Basis (Fin n) R M := (finBasis R M).reindex (finCongr hn)
-
-variable {R M}
-
-/-- A free module with rank 1 has a basis with one element. -/
-noncomputable def basisUnique (ι : Type*) [Unique ι]
-    (h : finrank R M = 1) :
-    Basis ι R M :=
-  haveI : Module.Finite R M :=
-    Module.finite_of_finrank_pos (_root_.zero_lt_one.trans_le h.symm.le)
-  (finBasisOfFinrankEq R M h).reindex (Equiv.ofUnique _ _)
-
-@[simp]
-theorem basisUnique_repr_eq_zero_iff {ι : Type*} [Unique ι]
-    {h : finrank R M = 1} {v : M} {i : ι} :
-    (basisUnique ι h).repr v i = 0 ↔ v = 0 :=
-  ⟨fun hv =>
-    (basisUnique ι h).repr.map_eq_zero_iff.mp (Finsupp.ext fun j => Subsingleton.elim i j ▸ hv),
-    fun hv => by rw [hv, LinearEquiv.map_zero, Finsupp.zero_apply]⟩
 
 end Module
