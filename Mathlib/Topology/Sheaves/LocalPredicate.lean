@@ -203,7 +203,10 @@ structure TrivializationOn (U : Opens B) (ι : Type*) : Type _ where
   bijective b : Function.Bijective (sec · b)
 
 /-- A set of sections is weakly locally constant at a point `b` if `b` has a neighborhood on which
-every germ can be extended to a section in exactly one way. -/
+every germ can be extended to a section in exactly one way.
+This is weaker than `IsLocallyConstant`, and the étalé space associated to a weakly locally
+constant predicate is not necessarily a covering space, but `IsWeaklyLocallyConstant` still
+implies `IsSeparated` and `IsStalkSurj`. -/
 abbrev IsWeaklyLocallyConstant := ∃ U : OpenNhds b, IsConstantOn P U.1
 
 /-- A set of sections is locally constant at a point `b` if every neighborhood of `b` contains
