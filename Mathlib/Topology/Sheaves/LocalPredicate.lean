@@ -554,9 +554,8 @@ theorem stalkToFiber_injective (P : PrelocalPredicate T) (x : X) (w : IsStalkInj
   obtain ⟨U, ⟨fU, hU⟩, rfl⟩ := jointly_surjective' tU
   obtain ⟨V, ⟨fV, hV⟩, rfl⟩ := jointly_surjective' tV
   -- Decompose everything into its constituent parts:
-  dsimp
-  simp only [stalkToFiber, Types.Colimit.ι_desc_apply] at h
-  specialize w (unop U) (unop V) fU hU fV hV h
+  simp_rw [stalkToFiber, Function.comp_apply, Colimit.ι_desc_apply] at h
+  specialize w (unop U) (unop V) fU fV hU hV h
   rcases w with ⟨W, iU, iV, w⟩
   -- and put it back together again in the correct order.
   refine ⟨op W, fun w ↦ fU (iU w : (unop U).1), P.res ?_ _ hU, ?_⟩
