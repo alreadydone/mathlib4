@@ -7,9 +7,9 @@ import Mathlib.Topology.Sheaves.LocalPredicate
 import Mathlib.Topology.Sheaves.Stalks
 
 /-!
-# Sheafification of `Type` valued presheaves
+# Sheafification of `Type`-valued presheaves
 
-We construct the sheafification of a `Type` valued presheaf,
+We construct the sheafification of a `Type`-valued presheaf,
 as the subsheaf of dependent functions into the stalks
 consisting of functions which are locally germs.
 
@@ -91,7 +91,7 @@ def adjunctionPrelocalPredicate (F : Presheaf (Type u) X) {G : X → Type u}
   right_inv f := ext fun U ↦ funext fun s ↦ Subtype.ext <| funext fun x ↦
     (congr_arg _ (stalkFunctor_map_germ_apply (C := Type u) ..)).trans (stalkToFiber_germ ..)
 
-/-- The sheafification of a `Type` valued presheaf, defined as the functions into the stalks which
+/-- The sheafification of a `Type`-valued presheaf, defined as the functions into the stalks which
 are locally equal to germs.
 -/
 def sheafify : Sheaf (Type _) X :=
@@ -108,7 +108,7 @@ def toSheafify (F : Presheaf (Type u) X) : F ⟶ F.sheafify.1 where
     PrelocalPredicate.sheafifyOf ⟨f, fun x ↦ rfl⟩⟩
   naturality U U' f := by
     ext x
-    apply Subtype.ext -- Porting note: Added `apply`
+    apply Subtype.ext -- Porting note (https://github.com/leanprover-community/mathlib4/issues/11041): Added `apply`
     ext ⟨u, m⟩
     exact germ_res_apply F f.unop u m x
 
