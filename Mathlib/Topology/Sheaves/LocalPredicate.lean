@@ -248,6 +248,20 @@ theorem IsWeaklyLocallyConstant.isStalkSurj (h : IsWeaklyLocallyConstant P b) :
     IsStalkSurj P b :=
   fun x ↦ have ⟨U, hU⟩ := h; have ⟨s, hs, _⟩ := hU ⟨b, U.2⟩ x; ⟨U, s, hs⟩
 
+theorem IsWeaklyLocallyConstant.isSeparated (h : IsWeaklyLocallyConstant P b) :
+    IsSeparated P b :=
+  fun x y ne ↦ by
+    have ⟨U, hU⟩ := h
+    have ⟨s, hs, hsu⟩ := hU ⟨b, U.2⟩ x
+    have ⟨t, ht, htu⟩ := hU ⟨b, U.2⟩ y
+    refine ⟨U, s, t, hs.1, ht.1, hs.2, ht.2, fun b' eq ↦ ne ?_⟩
+    rw [← hs.2, (isConstantOn_iff.mp hU).1 s t b' hs.1 ht.1 eq, ht.2]
+
+theorem HasIdentityPrinciple.isStalkInj {P : PrelocalPredicate F}
+    (h : HasIdentityPrinciple P.pred b) : IsStalkInj P.pred b :=
+  P.isStalkInj_iff.mpr fun U _s _t hs ht eq ↦ have ⟨V, le, ip⟩ := h U
+    ⟨V, le.hom, congr_fun (ip _ _ ⟨b, V.2⟩ (P.res le.hom _ hs) (P.res le.hom _ ht) eq)⟩
+
 namespace IsConstantOn
 
 variable {U : Opens B} (h : IsConstantOn P U) {b : U} (x : F b)
@@ -301,20 +315,6 @@ lemma preimage_snd_comp_equiv (i : ι) :
     exact congr($h.2).symm
 
 end TrivializationOn
-
-theorem IsWeaklyLocallyConstant.isSeparated (h : IsWeaklyLocallyConstant P b) :
-    IsSeparated P b :=
-  fun x y ne ↦ by
-    have ⟨U, hU⟩ := h
-    have ⟨s, hs, hsu⟩ := hU ⟨b, U.2⟩ x
-    have ⟨t, ht, htu⟩ := hU ⟨b, U.2⟩ y
-    refine ⟨U, s, t, hs.1, ht.1, hs.2, ht.2, fun b' eq ↦ ne ?_⟩
-    rw [← hs.2, (isConstantOn_iff.mp hU).1 s t b' hs.1 ht.1 eq, ht.2]
-
-theorem HasIdentityPrinciple.isStalkInj {P : PrelocalPredicate F}
-    (h : HasIdentityPrinciple P.pred b) : IsStalkInj P.pred b :=
-  P.isStalkInj_iff.mpr fun U _s _t hs ht eq ↦ have ⟨V, le, ip⟩ := h U
-    ⟨V, le.hom, congr_fun (ip _ _ ⟨b, V.2⟩ (P.res le.hom _ hs) (P.res le.hom _ ht) eq)⟩
 
 end Properties
 
