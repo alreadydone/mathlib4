@@ -205,13 +205,16 @@ structure TrivializationOn (U : Opens B) (ι : Type*) : Type _ where
 /-- A set of sections is weakly locally constant at a point `b` if `b` has a neighborhood on which
 every germ can be extended to a section in exactly one way.
 This is weaker than `IsLocallyConstant`, and the étalé space associated to a weakly locally
-constant predicate is not necessarily a covering space, but `IsWeaklyLocallyConstant` still
+constant set of sections is not necessarily a covering space, but `IsWeaklyLocallyConstant` still
 implies `IsSeparated` and `IsStalkSurj`. -/
 abbrev IsWeaklyLocallyConstant := ∃ U : OpenNhds b, IsConstantOn P U.1
 
 /-- A set of sections is locally constant at a point `b` if every neighborhood of `b` contains
 a neighborhood on which every germ can be extended to a section in exactly one way.
-This definition is intended to be applied to a locally connected base space `B`. -/
+This definition is intended to be applied to a locally connected base space `B`:
+if `B` is not locally connected, locally constant sheaves on `B` may not give rise to
+locally constant sets of sections, but locally constant sets of sections do always give
+rise to covering spaces. -/
 abbrev IsLocallyConstant := ∀ U : OpenNhds b, ∃ V ≤ U, IsConstantOn P V.1
 
 variable {P}
