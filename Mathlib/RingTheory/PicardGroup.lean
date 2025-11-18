@@ -391,12 +391,23 @@ variable (R : Type u) [CommSemiring R]
 instance (M : (Skeleton <| SemimoduleCat.{u} R)ˣ) : Module.Invertible R M :=
   .right (Quotient.eq.mp M.inv_mul).some.toLinearEquivₛ
 
+instance (R : Type u) [CommRing R] (M : (Skeleton <| ModuleCat.{u} R)ˣ) : Module.Invertible R M :=
+  .right (Quotient.eq.mp M.inv_mul).some.toLinearEquiv
+
+def MulEquiv.skeletonModuleCatSemimoduleCat (R : Type u) [CommRing R] :
+    Skeleton (ModuleCat.{u} R) ≃* Skeleton (SemimoduleCat.{u} R) where
+  __ :=  ModuleCat.equivalenceSemimoduleCat.skeletonEquiv
+  map_mul' := by rintro ⟨⟩ ⟨⟩; change Quot.mk .. = Quot.mk ..; congr; simp; rfl
+
 instance : Small.{u} (Skeleton <| SemimoduleCat.{u} R)ˣ :=
   let sf := Σ n, ModuleCon R (Fin n → R)
   have {c₁ c₂ : sf} : c₁ = c₂ → c₁.2.Quotient ≃ₗ[R] c₂.2.Quotient := by rintro rfl; exact .refl ..
   let f (M : (Skeleton <| SemimoduleCat.{u} R)ˣ) : sf := ⟨_, Finite.kerReprₛ R M⟩
   small_of_injective (f := f) fun M N eq ↦ Units.ext <| Quotient.out_equiv_out.mp
     ⟨((Finite.reprEquivₛ R M).symm ≪≫ₗ this eq ≪≫ₗ Finite.reprEquivₛ R N).toModuleIsoₛ⟩
+
+instance (R : Type u) [CommRing R] : Small.{u} (Skeleton <| ModuleCat.{u} R)ˣ :=
+  (Units.mapEquiv _).toEquiv.small
 
 /-- The Picard group of a commutative semiring R consists of the invertible R-modules,
 up to isomorphism. -/
