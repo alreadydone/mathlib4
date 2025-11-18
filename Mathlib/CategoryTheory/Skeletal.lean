@@ -162,7 +162,7 @@ namespace Functor
 noncomputable def mapSkeleton (F : C ⥤ D) : Skeleton C ⥤ Skeleton D :=
   (skeletonEquivalence C).functor ⋙ F ⋙ (skeletonEquivalence D).inverse
 
-variable (F : C ⥤ D)
+variable (F : C ⥤ D) (G : D ⥤ E)
 
 lemma mapSkeleton_obj_toSkeleton (X : C) :
     F.mapSkeleton.obj (toSkeleton X) = toSkeleton (F.obj X) :=
@@ -179,8 +179,7 @@ categories, these are `C ⥤ Skeleton C ⥤ Skeleton D` and `C ⥤ D ⥤ Skeleto
 the square formed by these 4 objects and 4 functors commutes. -/
 noncomputable def toSkeletonFunctorCompMapSkeletonIso :
     toSkeletonFunctor C ⋙ F.mapSkeleton ≅ F ⋙ toSkeletonFunctor D :=
-  NatIso.ofComponents (fun X ↦ (toSkeletonFunctor D).mapIso <| F.mapIso <| preCounitIso X)
-    (fun {X Y} f ↦ show (_ ≫ _) ≫ _ = _ ≫ _ by simp [assoc])
+  (associator ..).symm ≪≫ isoWhiskerRight (skeletonEquivalence C).counitIso _ ≪≫ leftUnitor _
 
 lemma mapSkeleton_injective [F.Full] [F.Faithful] : Function.Injective F.mapSkeleton.obj :=
   fun _ _ h ↦ skeleton_skeletal C ⟨F.mapSkeleton.preimageIso <| eqToIso h⟩
@@ -188,10 +187,24 @@ lemma mapSkeleton_injective [F.Full] [F.Faithful] : Function.Injective F.mapSkel
 lemma mapSkeleton_surjective [F.EssSurj] : Function.Surjective F.mapSkeleton.obj :=
   fun Y ↦ let ⟨X, h⟩ := EssSurj.mem_essImage Y; ⟨X, skeleton_skeletal D h⟩
 
+/-- The endofunctor from a skeleton to itself induced by the identity functor is
+isomorphic to the identity functor. -/
+noncomputable def mapSkeletonId : (𝟭 C).mapSkeleton ≅ 𝟭 (Skeleton C) :=
+  isoWhiskerLeft _ (leftUnitor _) ≪≫ (skeletonEquivalence C).unitIso.symm
+
+/-- The functor between skeleta induced by a composition is isomorphic to
+the composition of induced functor. -/
+noncomputable def mapSkeletonComp : (F ⋙ G).mapSkeleton ≅ F.mapSkeleton ⋙ G.mapSkeleton :=
+  isoWhiskerLeft _ (associator ..) ≪≫ (isoWhiskerRight (associator .. ≪≫ isoWhiskerLeft _
+    (associator .. ≪≫ isoWhiskerLeft _ (Equivalence.counitIso ..) ≪≫ rightUnitor ..)) _ ≪≫
+    associator ..).symm ≪≫ associator ..
+
 end Functor
 
-/-- Two categories which are categorically equivalent have skeletons with equivalent objects.
--/
+noncomputable def NatTrans.mapSkeleton (F G : C ⥤ D) (α : F ⟶ G) :
+    F.mapSkeleton ⟶ G.mapSkeleton := .hcomp (𝟙 _) (.hcomp α (𝟙 _))
+
+/-- Two categories which are categorically equivalent have skeletons with equivalent objects. -/
 noncomputable def Equivalence.skeletonEquiv (e : C ≌ D) : Skeleton C ≃ Skeleton D :=
   let f := ((skeletonEquivalence C).trans e).trans (skeletonEquivalence D).symm
   { toFun := f.functor.obj
