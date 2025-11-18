@@ -3,6 +3,7 @@ Copyright (c) 2018 Reid Barton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Kim Morrison
 -/
+import Mathlib.CategoryTheory.NatIso
 import Mathlib.CategoryTheory.Opposites
 
 /-!
@@ -301,6 +302,10 @@ theorem hcongr_hom {F G : C ⥤ D} (h : F = G) {X Y} (f : X ⟶ Y) : F.map f ≍
   rw [h]
 
 end HEq
+
+theorem copyObj_eqToIso (F : C ⥤ D) (obj : C → D) (e : ∀ X, F.obj X = obj X) :
+    F.copyObj obj (eqToIso <| e ·) = F :=
+  ext (.symm <| e ·) <| by simp [copyObj]
 
 end Functor
 

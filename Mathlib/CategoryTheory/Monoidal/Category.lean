@@ -1024,6 +1024,60 @@ lemma whiskerLeft_app_tensor_app {X' Y' : J} (f : X' ⟶ Y') (X : J) :
 
 end NatTrans
 
+section CopyObj
+
+variable (C : Type*) [𝒞 : Category C] [MonoidalCategory C]
+variable (tensorObj : C → C → C) (iso : ∀ X Y, X ⊗ Y ≅ tensorObj X Y)
+
+namespace MonoidalCategoryStruct
+
+/-- Replace each tensor product in a `MonoidalCategoryStruct` by an isomorphic object. -/
+@[simps] abbrev copyTensorObj : MonoidalCategoryStruct C where
+  tensorObj := tensorObj
+  whiskerLeft X _ _ f := (iso ..).inv ≫ X ◁ f ≫ (iso ..).hom
+  whiskerRight f Z := (iso ..).inv ≫ f ▷ Z ≫ (iso ..).hom
+  tensorHom f g := (iso ..).inv ≫ (f ⊗ₘ g) ≫ (iso ..).hom
+  tensorUnit := 𝟙_ C
+  associator X Y Z := (whiskerRightIso (iso ..) _ ≪≫ iso ..).symm ≪≫
+    α_ X Y Z ≪≫ (whiskerLeftIso _ (iso ..) ≪≫ iso ..)
+  leftUnitor X := (iso ..).symm ≪≫ λ_ X
+  rightUnitor X := (iso ..).symm ≪≫ ρ_ X
+
+variable {X₁ X₂ X₃ Y₁ Y₂ Y₃ : C} (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (f₃ : X₃ ⟶ Y₃)
+
+lemma copyTensorObj_tensorHom_tensorHom_left :
+    (copyTensorObj C _ iso).tensorHom ((copyTensorObj C _ iso).tensorHom f₁ f₂) f₃ =
+      (whiskerRightIso (iso ..) _ ≪≫ iso ..).inv ≫ ((f₁ ⊗ₘ f₂) ⊗ₘ f₃) ≫
+      (whiskerRightIso (iso ..) _ ≪≫ iso ..).hom := by
+  simp [tensorHom_def, -tensor_whiskerLeft, whisker_exchange_assoc]
+
+lemma copyTensorObj_tensorHom_tensorHom_right :
+    (copyTensorObj C _ iso).tensorHom f₁ ((copyTensorObj C _ iso).tensorHom f₂ f₃) =
+      (whiskerLeftIso _ (iso ..) ≪≫ iso ..).inv ≫ (f₁ ⊗ₘ f₂ ⊗ₘ f₃) ≫
+      (whiskerLeftIso _ (iso ..) ≪≫ iso ..).hom := by
+  simp [tensorHom_def, -whiskerRight_tensor, whisker_exchange_assoc]
+
+end MonoidalCategoryStruct
+
+open MonoidalCategoryStruct in
+/-- Replace each tensor product in a monoidal category by an isomorphic object. -/
+abbrev MonoidalCategory.copyTensorObj (tensorObj : C → C → C) (iso : ∀ X Y, X ⊗ Y ≅ tensorObj X Y) :
+    MonoidalCategory C where
+  __ := MonoidalCategoryStruct.copyTensorObj C _ iso
+  tensorHom_def := by simp [tensorHom_def]
+  associator_naturality _ _ _ := by
+    rw [copyTensorObj_tensorHom_tensorHom_left, copyTensorObj_tensorHom_tensorHom_right]; simp
+  pentagon X Y Z W := by
+    simp only [copyTensorObj_tensorObj, copyTensorObj_associator, trans_symm, whiskerRightIso_symm,
+      trans_assoc, trans_hom, symm_hom, whiskerRightIso_hom, whiskerLeftIso_hom,
+      copyTensorObj_whiskerRight, comp_whiskerRight, whisker_assoc, assoc,
+      copyTensorObj_whiskerLeft, whiskerLeft_comp, hom_inv_id_assoc, whiskerLeft_hom_inv_assoc,
+      hom_inv_whiskerRight_assoc, inv_hom_id_assoc, cancel_iso_inv_left]
+    rw [← whiskerLeft_comp_assoc, ← comp_whiskerRight_assoc, whisker_exchange_assoc]
+    simp
+
+end CopyObj
+
 section ObjectProperty
 
 /-- The restriction of a monoidal category along an object property

@@ -204,6 +204,16 @@ theorem hexagon_reverse_inv (X Y Z : C) :
       (β_ X Z).inv ▷ Y ≫ (α_ X Z Y).hom ≫ X ◁ (β_ Y Z).inv := by
   simp
 
+/-- Replace each tensor product in a braided monoidal category by an isomorphic object. -/
+abbrev copyTensorObj (tensorObj : C → C → C) (iso : ∀ X Y, X ⊗ Y ≅ tensorObj X Y) :
+    @BraidedCategory C _ (MonoidalCategory.copyTensorObj C _ iso) :=
+  let inst := MonoidalCategory.copyTensorObj C _ iso
+  { braiding X Y := (iso ..).symm ≪≫ β_ X Y ≪≫ iso ..
+    braiding_naturality_left := by clear inst; simp
+    braiding_naturality_right := by clear inst; simp
+    hexagon_forward := by clear inst; simp
+    hexagon_reverse := by clear inst; simp }
+
 end BraidedCategory
 
 -- FIXME: `reassoc_of%` should unfold `autoParam`.

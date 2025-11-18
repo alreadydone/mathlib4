@@ -665,6 +665,21 @@ noncomputable def Monoidal.ofOplaxMonoidal
     [F.OplaxMonoidal] [IsIso (η F)] [∀ X Y, IsIso (δ F X Y)] :=
   (CoreMonoidal.ofOplaxMonoidal F).toMonoidal
 
+section CopyObj
+
+variable (obj : C → D) (e : ∀ X, F.obj X ≅ obj X)
+
+instance [F.LaxMonoidal] : (F.copyObj obj e).LaxMonoidal where
+  ε := ε F ≫ (e _).hom
+  μ X Y := ((e _).inv ⊗ₘ (e _).inv) ≫ μ F X Y ≫ (e _).hom
+  μ_natural_left := by simp [copyObj, tensorHom_def, ← whisker_exchange_assoc]
+  μ_natural_right := by simp [copyObj, tensorHom_def', whisker_exchange_assoc]
+  associativity _ _ _ := by simp [tensorHom_def']
+  left_unitality _ := by simp [copyObj, tensorHom_def, left_unitality]
+  right_unitality := _
+
+end CopyObj
+
 section Prod
 
 variable (F : C ⥤ D) (G : E ⥤ C') [MonoidalCategory C']
