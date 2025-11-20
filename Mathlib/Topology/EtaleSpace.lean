@@ -3,9 +3,11 @@ Copyright (c) 2025 Junyan Xu. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Junyan Xu
 -/
-import Mathlib.Topology.Covering
-import Mathlib.Topology.IsLocalHomeomorph
-import Mathlib.Topology.Sheaves.LocalPredicate
+module
+
+public import Mathlib.Topology.Covering
+public import Mathlib.Topology.IsLocalHomeomorph
+public import Mathlib.Topology.Sheaves.LocalPredicate
 
 /-!
 # Étalé spaces of local predicates and presheaves
