@@ -152,7 +152,6 @@ variable {N : Type*} [CommGroup N] [LinearOrder N] [IsOrderedMonoid N]
 /-- An `OrderMonoidHom` can be made to an `OrderHom` between their `MulArchimedeanOrder`. -/
 @[to_additive /-- An `OrderAddMonoidHom` can be made to an `OrderHom` between their
 `ArchimedeanOrder`. -/]
-noncomputable
 def orderHom (f : M →*o N) : MulArchimedeanOrder M →o MulArchimedeanOrder N where
   toFun a := of (f a.val)
   monotone' := by
@@ -467,7 +466,6 @@ variable {N : Type*} [CommGroup N] [LinearOrder N] [IsOrderedMonoid N]
 /-- An `OrderMonoidHom` can be lifted to an `OrderHom` over archimedean classes. -/
 @[to_additive
 /-- An `OrderAddMonoidHom` can be lifted to an `OrderHom` over archimedean classes. -/]
-noncomputable
 def orderHom (f : M →*o N) : MulArchimedeanClass M →o MulArchimedeanClass N :=
   (MulArchimedeanOrder.orderHom f).antisymmetrization
 
@@ -508,7 +506,6 @@ variable {α : Type*} [PartialOrder α]
 monotone function `MulArchimedeanClass M →o α`. -/
 @[to_additive /-- Lift a function `M → α` that's monotone along archimedean classes to a
 monotone function `ArchimedeanClass M →o α`. -/]
-noncomputable
 def liftOrderHom (f : M → α) (h : ∀ a b, mk a ≤ mk b → f a ≤ f b) :
     MulArchimedeanClass M →o α where
   toFun := lift f fun a b heq ↦ le_antisymm (h a b heq.le) (h b a heq.ge)
@@ -538,98 +535,14 @@ def subsemigroup (s : UpperSet (MulArchimedeanClass M)) : Subsemigroup M where
     · exact s.upper h ha
     · exact s.upper h hb
 
-/-- Make `MulArchimedeanClass.subsemigroup` a subgroup by assigning
-s = ⊤ with a junk value ⊥. -/
-@[to_additive /-- Make `ArchimedeanClass.subsemigroup` a subgroup by assigning
-s = ⊤ with a junk value ⊥. -/]
-noncomputable
-def subgroup (s : UpperSet (MulArchimedeanClass M)) : Subgroup M :=
-  open Classical in
-  if hs : s = ⊤ then
-    ⊥
-  else {
-    subsemigroup s with
-    one_mem' := by
-      rw [subsemigroup, Set.mem_preimage]
-      obtain ⟨u, hu⟩ := UpperSet.coe_nonempty.mpr hs
-      simpa using s.upper (by simp) hu
-    inv_mem' := by simp [subsemigroup]
-  }
-
-variable {s : UpperSet (MulArchimedeanClass M)}
-
 @[to_additive]
-theorem subsemigroup_eq_subgroup_of_ne_top (hs : s ≠ ⊤) :
-    subsemigroup s = (subgroup s : Set M)  := by
-  simp [subgroup, hs]
-
-variable (M) in
-@[to_additive (attr := simp)]
-theorem subgroup_eq_bot : subgroup (M := M) ⊤ = ⊥ := by
-  simp [subgroup]
-
-@[to_additive (attr := simp)]
-theorem mem_subgroup_iff (hs : s ≠ ⊤) : a ∈ subgroup s ↔ mk a ∈ s := by
-  simp [subgroup, subsemigroup, hs]
-
-@[to_additive]
-theorem subgroup_strictAntiOn : StrictAntiOn (subgroup (M := M)) (Set.Iio ⊤) := by
-  intro s hs t ht hst
+theorem subsemigroup_strictAnti : StrictAnti (subsemigroup (M := M)) := by
+  intro s t hst
   rw [← SetLike.coe_ssubset_coe]
-  rw [← subsemigroup_eq_subgroup_of_ne_top (Set.mem_Iio.mp hs).ne_top]
-  rw [← subsemigroup_eq_subgroup_of_ne_top (Set.mem_Iio.mp ht).ne_top]
-  refine Set.ssubset_iff_subset_ne.mpr ⟨by simpa [subsemigroup] using hst.le, ?_⟩
+  refine Set.ssubset_iff_subset_ne.mpr ⟨fun _ h ↦ hst.le h, ?_⟩
   contrapose! hst with heq
   apply le_of_eq
-  simpa [mk_surjective, subsemigroup] using heq
-
-@[to_additive]
-theorem subgroup_antitone : Antitone (subgroup (M := M)) := by
-  intro s t hst
-  obtain rfl | hs := eq_or_ne s ⊤
-  · rw [eq_top_iff.mpr hst]
-  obtain rfl | ht := eq_or_ne t ⊤
-  · simp
-  rwa [subgroup_strictAntiOn.le_iff_ge ht.lt_top hs.lt_top]
-
-/-- An open ball defined by `MulArchimedeanClass.subgroup` of `UpperSet.Ioi c`.
-For `c = ⊤`, we assign the junk value `⊥`. -/
-@[to_additive /--An open ball defined by `ArchimedeanClass.addSubgroup` of `UpperSet.Ioi c`.
-For `c = ⊤`, we assign the junk value `⊥`. -/]
-noncomputable
-abbrev ballSubgroup (c : MulArchimedeanClass M) := subgroup (UpperSet.Ioi c)
-
-/-- A closed ball defined by `MulArchimedeanClass.subgroup` of `UpperSet.Ici c`. -/
-@[to_additive /-- A closed ball defined by `ArchimedeanClass.addSubgroup` of `UpperSet.Ici c`. -/]
-noncomputable
-abbrev closedBallSubgroup (c : MulArchimedeanClass M) := subgroup (UpperSet.Ici c)
-
-@[to_additive]
-theorem mem_ballSubgroup_iff {a : M} {c : MulArchimedeanClass M} (hA : c ≠ ⊤) :
-    a ∈ ballSubgroup c ↔ c < mk a := by
-  simp [hA]
-
-@[to_additive]
-theorem mem_closedBallSubgroup_iff {a : M} {c : MulArchimedeanClass M} :
-    a ∈ closedBallSubgroup c ↔ c ≤ mk a := by
-  simp
-
-variable (M) in
-@[to_additive (attr := simp)]
-theorem ballSubgroup_top : ballSubgroup (M := M) ⊤ = ⊥ := by
-  convert subgroup_eq_bot M
-  simp
-
-variable (M) in
-@[to_additive (attr := simp)]
-theorem closedBallSubgroup_top : closedBallSubgroup (M := M) ⊤ = ⊥ := by
-  ext
-  simp
-
-@[to_additive]
-theorem ballSubgroup_antitone : Antitone (ballSubgroup (M := M)) := by
-  intro _ _ h
-  exact subgroup_antitone <| (UpperSet.Ioi_strictMono _).monotone h
+  simpa [MulArchimedeanClass.mk_surjective, MulArchimedeanClass.subsemigroup] using heq
 
 end MulArchimedeanClass
 
@@ -722,7 +635,6 @@ theorem lift_mk {α : Type*} (f : {a : M // a ≠ 1} → α)
 monotone function `FiniteMulArchimedeanClass M →o α`. -/
 @[to_additive /-- Lift a function `{a : M // a ≠ 1} → α` that's monotone along archimedean
 classes to a monotone function `FiniteArchimedeanClass M₁ →o α`. -/]
-noncomputable
 def liftOrderHom {α : Type*} [PartialOrder α]
     (f : {a : M // a ≠ 1} → α)
     (h : ∀ (a b : {a : M // a ≠ 1}), mk a.val a.prop ≤ mk b.val b.prop → f a ≤ f b) :
@@ -776,5 +688,70 @@ theorem coe_congrOrderIso_apply (e : MulArchimedeanClass M ≃o MulArchimedeanCl
 @[to_additive (attr := simp)]
 theorem congrOrderIso_symm (e : MulArchimedeanClass M ≃o MulArchimedeanClass N) :
     (congrOrderIso e).symm = congrOrderIso e.symm := rfl
+
+/-- The upper set in `MulArchimedeanClass M` consisting of an upper set in
+`FiniteMulArchimedeanClass M` plus `⊤`. -/
+@[to_additive /-- The upper set in `ArchimedeanClass M` consisting of an upper set in
+`FiniteArchimedeanClass M` plus `⊤`. -/]
+def toUpperSetMulArchimedeanClass :
+    UpperSet (FiniteMulArchimedeanClass M) ↪o UpperSet (MulArchimedeanClass M) :=
+  .ofStrictMono (fun s ↦
+    { carrier := {a | ∀ h : a ≠ ⊤, ⟨a, h⟩ ∈ s}
+      upper' _ _ le mem ne := s.upper le (mem <| ne_top_of_le_ne_top ne le) })
+  fun s t lt ↦ by
+    simp_rw [lt_iff_le_not_ge] at lt ⊢
+    exact ⟨fun _ mem ne ↦ lt.1 (mem _), fun hst ↦ lt.2 fun x mem ↦ hst (fun _ ↦ mem) x.2⟩
+
+/-- The `MulArchimedeanClass.subsemigroup` associated to an upper set in
+`FiniteMulArchimedeanClass M` is a subgroup. -/
+@[to_additive /-- The `ArchimedeanClass.subsemigroup` associated to an upper set in
+`FiniteArchimedeanClass M` is a subgroup. -/]
+def subgroup (s : UpperSet (FiniteMulArchimedeanClass M)) : Subgroup M where
+  __ := MulArchimedeanClass.subsemigroup (toUpperSetMulArchimedeanClass s)
+  one_mem' h := (h rfl).elim
+  inv_mem' := by simp [MulArchimedeanClass.subsemigroup]
+
+variable {s : UpperSet (FiniteMulArchimedeanClass M)}
+
+@[to_additive]
+theorem subsemigroup_eq_subgroup :
+    MulArchimedeanClass.subsemigroup (toUpperSetMulArchimedeanClass s) = (subgroup s : Set M) :=
+  rfl
+
+variable (M) in
+@[to_additive (attr := simp)]
+theorem subgroup_eq_bot : subgroup (M := M) ⊤ = ⊥ := by
+  ext; simp [subgroup, MulArchimedeanClass.subsemigroup, toUpperSetMulArchimedeanClass]
+
+@[to_additive (attr := simp)]
+theorem mem_subgroup_iff : a ∈ subgroup s ↔ ∀ h : a ≠ 1, mk a h ∈ s := by
+  simp_rw [mk, Ne, ← MulArchimedeanClass.mk_eq_top_iff]; rfl
+
+@[to_additive] theorem subgroup_strictAnti : StrictAnti (subgroup (M := M)) := fun _ _ h ↦
+  MulArchimedeanClass.subsemigroup_strictAnti (toUpperSetMulArchimedeanClass.strictMono h)
+
+/-- An open ball defined by `FiniteMulArchimedeanClass.subgroup` of `UpperSet.Ioi c`. -/
+@[to_additive
+/--An open ball defined by `FiniteArchimedeanClass.addSubgroup` of `UpperSet.Ioi c`. -/]
+abbrev ballSubgroup (c : FiniteMulArchimedeanClass M) := subgroup (UpperSet.Ioi c)
+
+/-- A closed ball defined by `FiniteMulArchimedeanClass.subgroup` of `UpperSet.Ici c`. -/
+@[to_additive
+/-- A closed ball defined by `FiniteArchimedeanClass.addSubgroup` of `UpperSet.Ici c`. -/]
+abbrev closedBallSubgroup (c : FiniteMulArchimedeanClass M) := subgroup (UpperSet.Ici c)
+
+@[to_additive]
+theorem mem_ballSubgroup_iff {a : M} {c : FiniteMulArchimedeanClass M} :
+    a ∈ ballSubgroup c ↔ ∀ h : a ≠ 1, c < mk a h := by
+  simp
+
+@[to_additive]
+theorem mem_closedBallSubgroup_iff {a : M} {c : FiniteMulArchimedeanClass M} :
+    a ∈ closedBallSubgroup c ↔ ∀ h : a ≠ 1, c ≤ mk a h := by
+  simp
+
+@[to_additive]
+theorem ballSubgroup_strictAnti : StrictAnti (ballSubgroup (M := M)) :=
+  fun _ _ h ↦ subgroup_strictAnti <| UpperSet.Ioi_strictMono _ h
 
 end FiniteMulArchimedeanClass
