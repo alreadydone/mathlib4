@@ -70,7 +70,7 @@ variable {S : Type*} [SetLike S α] [SubgroupClass S α] {H : S}
 
 /-- The kernel of a morphism of totally ordered abelian groups is convex. -/
 @[to_additive] lemma MonoidHom.ordConnected_ker (f : α →*o β) : (f.ker : Set α).OrdConnected :=
-  Subgroup.ordConnected_iff_mem_of_le_one.mpr fun a b aleb ble1 fa1 ↦
+  .coe_subgroup fun a b aleb ble1 fa1 ↦
     le_antisymm (by simpa using f.monotone' ble1) <| by rw [← fa1]; exact f.monotone' aleb
 
 end OrdConnected
@@ -80,7 +80,7 @@ variable [CommGroup α] [LinearOrder α]
 open MulArchimedeanClass in
 @[to_additive] theorem FiniteMulArchimedeanClass.ordConnected_subgroup [IsOrderedMonoid α]
     (s : UpperSet (FiniteMulArchimedeanClass α)) : (subgroup s : Set α).OrdConnected :=
-  Subgroup.ordConnected_iff_mem_of_le_one.mpr fun _a _b hab b_le ha b_ne ↦
+  .coe_subgroup fun _a _b hab b_le ha b_ne ↦
     s.upper (mk_monotoneOn (hab.trans b_le) b_le hab)
       (ha <| mk_eq_top_iff.not.mpr (hab.trans_lt (b_le.lt_of_ne <| mk_eq_top_iff.not.mp b_ne)).ne)
 
